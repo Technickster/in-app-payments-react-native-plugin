@@ -76,8 +76,13 @@ RCT_REMAP_METHOD(startCardEntryFlow,
             [((UINavigationController *)rootViewController) pushViewController:cardEntryForm animated:YES];
         } else {
             UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:cardEntryForm];
-            [rootViewController presentViewController:navigationController animated:YES completion:nil];
+             while(rootViewController.presentedViewController) {
+                 rootViewController = rootViewController.presentedViewController;
+             }
+             [rootViewController presentViewController:navigationController animated:YES completion:nil];
         }
+        
+        
         resolve([NSNull null]);
     });
 }
@@ -300,7 +305,7 @@ RCT_REMAP_METHOD(setTheme,
         if ([rootViewController isKindOfClass:[UINavigationController class]]) {
             [rootViewController.navigationController popViewControllerAnimated:YES];
         } else {
-            [rootViewController dismissViewControllerAnimated:YES completion:nil];
+            [cardEntryViewController dismissViewControllerAnimated:YES completion:nil];
         }
 
         [SQIPBuyerVerificationSDK.shared verifyWithParameters:params
@@ -338,11 +343,11 @@ RCT_REMAP_METHOD(setTheme,
         }
     } else {
         if (status == SQIPCardEntryCompletionStatusCanceled) {
-            [rootViewController dismissViewControllerAnimated:YES completion:^{
+            [cardEntryViewController dismissViewControllerAnimated:YES completion:^{
                 [self sendEventWithName:RNSQIPCardEntryCancelEventName body:nil];
             }];
         } else {
-            [rootViewController dismissViewControllerAnimated:YES completion:^{
+            [cardEntryViewController dismissViewControllerAnimated:YES completion:^{
                 [self sendEventWithName:RNSQIPCardEntryCompleteEventName body:nil];
             }];
         }
