@@ -125,10 +125,25 @@ RCT_REMAP_METHOD(requestApplePayNonce,
     dispatch_async([self methodQueue], ^{
         PKPaymentAuthorizationViewController *paymentAuthorizationViewController =
             [[PKPaymentAuthorizationViewController alloc] initWithPaymentRequest:paymentRequest];
+        
+        
+        
 
         paymentAuthorizationViewController.delegate = self;
         UIViewController *rootViewController = UIApplication.sharedApplication.keyWindow.rootViewController;
-        [rootViewController presentViewController:paymentAuthorizationViewController animated:NO completion:nil];
+        if ([rootViewController isKindOfClass:[UINavigationController class]]) {
+            [((UINavigationController *)rootViewController) pushViewController:paymentAuthorizationViewController animated:YES];
+        } else {
+            UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:paymentAuthorizationViewController];
+            
+         
+             while(rootViewController.presentedViewController) {
+                 rootViewController = rootViewController.presentedViewController;
+             }
+               [navigationController setNavigationBarHidden:YES animated:NO];
+             [rootViewController presentViewController:navigationController animated:NO completion:nil];
+        }
+        
         resolve([NSNull null]);
     });
 }
@@ -195,9 +210,9 @@ RCT_REMAP_METHOD(completeApplePayAuthorization,
 {
     UIViewController *rootViewController = UIApplication.sharedApplication.keyWindow.rootViewController;
     if ([rootViewController isKindOfClass:[UINavigationController class]]) {
-        [rootViewController.navigationController popViewControllerAnimated:YES];
+        [controller.navigationController popViewControllerAnimated:YES];
     } else {
-        [rootViewController dismissViewControllerAnimated:YES completion:nil];
+        [controller dismissViewControllerAnimated:YES completion:nil];
     }
     [self sendEventWithName:@"onApplePayComplete" body:nil];
 }
